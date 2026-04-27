@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Procesor odmian — TEI app/rdg</title>
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Source+Sans+3:wght@300;400;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1a3a6b;--blue:#005ea4;--blue2:#0070c0;--teal:#54b3d0;--teal-lt:#e8f5fb;
+  --white:#fff;--off:#f4f7fb;--off2:#e8eef6;--rule:#c8d8ea;
+  --ink:#162840;--ink2:#3a5370;--ink3:#7a96b0;
+  --ok:#0e6b3d;--ok-bg:#edfaf3;--ok-bd:#9de8c0;
+  --warn:#7a4700;--warn-bg:#fff8ec;--warn-bd:#f5c97a;
+  --err:#8b1a1a;--err-bg:#fdf0f0;--err-bd:#f0aaaa;
+  --dup:#004a8f;--dup-bg:#edf4fc;--dup-bd:#9bc4ed;
+}
+html{background:var(--off);color:var(--ink);font-family:'Source Sans 3',sans-serif;font-size:16px;line-height:1.7}
+body{min-height:100vh;display:grid;grid-template-rows:auto 1fr auto}
+
+header{background:var(--navy);padding:0 3rem;min-height:64px;display:flex;align-items:stretch}
+.header-inner{display:flex;align-items:center;gap:1.5rem;border-bottom:3px solid var(--teal);width:100%;padding:1rem 0}
+header h1{font-family:'Libre Baskerville',serif;font-size:1.125rem;font-weight:700;color:var(--white);letter-spacing:.01em}
+.pill{font-family:'DM Mono',monospace;font-size:.7rem;font-weight:500;background:var(--teal);color:var(--navy);padding:.2rem .6rem;border-radius:3px;letter-spacing:.04em;white-space:nowrap}
+
+main{max-width:700px;width:100%;margin:0 auto;padding:3rem 2rem 4rem}
+
+.intro{font-size:.9375rem;color:var(--ink2);line-height:1.75;margin-bottom:2.5rem;padding-bottom:2rem;border-bottom:1px solid var(--rule)}
+.intro code{font-family:'DM Mono',monospace;background:var(--off2);padding:.1em .35em;border-radius:3px;font-size:.85em}
+
+.steps{display:flex;flex-direction:column;gap:0}
+.step{display:grid;grid-template-columns:2.75rem 1fr;gap:0 1.25rem;padding-bottom:2.25rem;position:relative}
+.step:not(:last-child)::before{content:'';position:absolute;left:1.3125rem;top:2.75rem;bottom:0;width:1px;background:var(--rule)}
+
+.step-num{width:2.75rem;height:2.75rem;border-radius:50%;border:2px solid var(--rule);display:flex;align-items:center;justify-content:center;font-family:'DM Mono',monospace;font-size:.8125rem;color:var(--ink3);background:var(--white);flex-shrink:0;position:relative;z-index:1;transition:background .2s,border-color .2s,color .2s}
+.step-num.done{background:var(--blue);border-color:var(--blue);color:var(--white)}
+
+.step-body{padding-top:.35rem}
+.step-title{font-family:'Libre Baskerville',serif;font-size:.9375rem;font-weight:700;color:var(--navy);margin-bottom:.2rem}
+.step-hint{font-size:.8125rem;color:var(--ink3);line-height:1.55;margin-bottom:.875rem}
+.step-hint code{font-family:'DM Mono',monospace;background:var(--off2);padding:.1em .35em;border-radius:3px;font-size:.8em}
+
+.drop{border:1.5px dashed var(--rule);border-radius:6px;padding:.875rem 1.125rem;cursor:pointer;display:flex;align-items:center;gap:.75rem;background:var(--white);transition:background .15s,border-color .15s}
+.drop:hover{background:var(--teal-lt);border-color:var(--teal)}
+.drop input{display:none}
+.drop-ico{width:26px;height:26px;flex-shrink:0;opacity:.3;color:var(--blue)}
+.drop-txt{font-size:.875rem;color:var(--ink2)}
+.drop-txt span{color:var(--blue);text-decoration:underline}
+.file-tag{display:none;margin-top:.5rem;font-family:'DM Mono',monospace;font-size:.775rem;color:var(--ok);background:var(--ok-bg);border:1px solid var(--ok-bd);padding:.25rem .625rem;border-radius:4px;width:fit-content}
+
+.run{width:100%;margin-top:.25rem;padding:.9rem 1.5rem;background:var(--blue);color:var(--white);border:none;border-radius:6px;font-family:'Source Sans 3',sans-serif;font-size:1rem;font-weight:600;cursor:pointer;letter-spacing:.02em;transition:background .15s,transform .1s}
+.run:hover:not(:disabled){background:var(--blue2)}
+.run:active:not(:disabled){transform:scale(.99)}
+.run:disabled{opacity:.35;cursor:default}
+
+.err-box{display:none;margin-top:.875rem;padding:.75rem 1rem;font-size:.875rem;line-height:1.55;color:var(--err);background:var(--err-bg);border-left:3px solid var(--err);border-radius:4px}
+
+.results{display:none;margin-top:2.5rem;border-top:2px solid var(--teal);padding-top:2rem}
+.result-head{font-family:'Libre Baskerville',serif;font-size:1.125rem;font-weight:700;color:var(--navy);margin-bottom:1.25rem}
+
+.dl-btn{display:flex;align-items:center;gap:.75rem;padding:.875rem 1.25rem;margin-bottom:1.5rem;background:var(--navy);border:none;border-radius:6px;color:var(--white);text-decoration:none;font-size:.9375rem;font-weight:600;cursor:pointer;transition:background .15s;width:100%}
+.dl-btn:hover{background:var(--blue)}
+.dl-btn svg{flex-shrink:0}
+
+.raport{background:var(--white);border:1px solid var(--rule);border-radius:6px;overflow:hidden}
+.raport-head{background:var(--navy);color:var(--white);font-family:'DM Mono',monospace;font-size:.75rem;font-weight:500;letter-spacing:.07em;text-transform:uppercase;padding:.6rem 1.25rem}
+.raport-body{padding:1.125rem 1.25rem;display:flex;flex-direction:column;gap:.875rem}
+.raport-ok{color:var(--ok);font-size:.9375rem;font-style:italic}
+
+.raport-section{display:flex;flex-direction:column;gap:.4rem}
+.raport-section-title{font-family:'DM Mono',monospace;font-size:.72rem;font-weight:500;letter-spacing:.04em;padding:.2rem .6rem;border-radius:3px;display:inline-flex;align-items:center;gap:.4rem;width:fit-content}
+.s-warn .raport-section-title{background:var(--warn-bg);color:var(--warn);border:1px solid var(--warn-bd)}
+.s-err  .raport-section-title{background:var(--err-bg);color:var(--err);border:1px solid var(--err-bd)}
+.s-dup  .raport-section-title{background:var(--dup-bg);color:var(--dup);border:1px solid var(--dup-bd)}
+.raport-hint{font-size:.8rem;color:var(--ink3);font-style:italic;line-height:1.5;margin-bottom:.2rem}
+.raport-list{list-style:none;display:flex;flex-direction:column;gap:.275rem}
+.raport-list li{font-family:'DM Mono',monospace;font-size:.775rem;line-height:1.5;padding:.3rem .625rem;border-radius:3px}
+.s-warn .raport-list li{background:var(--warn-bg);color:var(--warn)}
+.s-err  .raport-list li{background:var(--err-bg);color:var(--err)}
+.s-dup  .raport-list li{background:var(--dup-bg);color:var(--dup)}
+
+footer{background:var(--navy);padding:.875rem 3rem;font-size:.8rem;color:rgba(255,255,255,.4)}
+
+@media(max-width:560px){
+  header,footer{padding-left:1.25rem;padding-right:1.25rem}
+  main{padding:2rem 1.25rem 3rem}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-inner">
+    <h1>Procesor odmian tekstowych</h1>
+    <span class="pill">TEI · app/rdg</span>
+  </div>
+</header>
+
+<main>
+  <p class="intro">
+    Wgraj trzy pliki, kliknij przycisk — narzędzie wstawi aparaty krytyczne
+    <code>&lt;app&gt;&lt;rdg&gt;</code> bezpośrednio za frazami bazowymi w tekście.
+    Wszystko odbywa się lokalnie — żadne dane nie opuszczają Twojego komputera.
+  </p>
+
+  <div class="steps">
+
+    <div class="step">
+      <div class="step-num" id="n1">1</div>
+      <div class="step-body">
+        <div class="step-title">Plik konfiguracyjny</div>
+        <div class="step-hint">Mapowanie nazw świadków na formy kanoniczne, np. <code>L11 = L1</code></div>
+        <div class="drop" onclick="document.getElementById('i1').click()">
+          <input type="file" id="i1" accept=".txt">
+          <svg class="drop-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="drop-txt">Kliknij, aby wybrać <span>config.txt</span></div>
+        </div>
+        <div class="file-tag" id="f1"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num" id="n2">2</div>
+      <div class="step-body">
+        <div class="step-title">Rejestr odmian</div>
+        <div class="step-hint">Format: <code>w. N tekst bazowy] wariant Świadek</code></div>
+        <div class="drop" onclick="document.getElementById('i2').click()">
+          <input type="file" id="i2" accept=".txt">
+          <svg class="drop-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="drop-txt">Kliknij, aby wybrać <span>odmiany.txt</span></div>
+        </div>
+        <div class="file-tag" id="f2"></div>
+      </div>
+    </div>
+
+    <div class="step">
+      <div class="step-num" id="n3">3</div>
+      <div class="step-body">
+        <div class="step-title">Tekst wejściowy</div>
+        <div class="step-hint">Czysty tekst edycji gotowy do przetworzenia.</div>
+        <div class="drop" onclick="document.getElementById('i3').click()">
+          <input type="file" id="i3" accept=".txt,.xml">
+          <svg class="drop-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M19.5 14.25v-2.625a3.375 3.375 0 00-3.375-3.375h-1.5A1.125 1.125 0 0113.5 7.125v-1.5a3.375 3.375 0 00-3.375-3.375H8.25m0 12.75h7.5m-7.5 3H12M10.5 2.25H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 00-9-9z" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <div class="drop-txt">Kliknij, aby wybrać plik wejściowy <span>(.txt / .xml)</span></div>
+        </div>
+        <div class="file-tag" id="f3"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="err-box" id="err"></div>
+  <button class="run" id="btn" disabled onclick="run()">Przetwórz i pobierz wynik</button>
+
+  <div class="results" id="results">
+    <div class="result-head">Gotowe!</div>
+    <button class="dl-btn" onclick="downloadResult()">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5M16.5 12L12 16.5m0 0L7.5 12m4.5 4.5V3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span id="dl-label">Pobierz plik wynikowy</span>
+    </button>
+    <div class="raport">
+      <div class="raport-head">Raport</div>
+      <div class="raport-body" id="raport-body"></div>
+    </div>
+  </div>
+</main>
+
+<footer>Pracownia Edycji i Monografii Cyfrowych &mdash; narzędzie działa lokalnie, żadne dane nie są przesyłane.</footer>
+
+<script>
+// ── Pliki ─────────────────────────────────────────────────
+let files = {config: null, odmiany: null, input: null};
+let outputBlob = null;
+
+function readFile(f){
+  return new Promise(r=>{
+    const fr = new FileReader();
+    fr.onload = e => r(e.target.result);
+    fr.readAsText(f, 'utf-8');
+  });
+}
+
+function setupDrop(inputId, fileKey, numId, tagId){
+  document.getElementById(inputId).onchange = function(){
+    if(!this.files[0]) return;
+    files[fileKey] = this.files[0];
+    const tag = document.getElementById(tagId);
+    tag.textContent = '✓ ' + this.files[0].name;
+    tag.style.display = 'block';
+    const num = document.getElementById(numId);
+    num.classList.add('done');
+    num.textContent = '✓';
+    checkReady();
+  };
+}
+setupDrop('i1','config','n1','f1');
+setupDrop('i2','odmiany','n2','f2');
+setupDrop('i3','input','n3','f3');
+
+function checkReady(){
+  document.getElementById('btn').disabled = !(files.config && files.odmiany && files.input);
+}
+
+// ══════════════════════════════════════════════════════════
+//  LOGIKA PROCESORA
+// ══════════════════════════════════════════════════════════
+
+function loadConfig(text){
+  const config = {};
+  for(const raw of text.split('\n')){
+    const line = raw.trim();
+    if(!line || line.startsWith('#')) continue;
+    if(line.includes('=')){
+      const [k, ...rest] = line.split('=');
+      config[k.trim()] = rest.join('=').trim();
+    }
+  }
+  return config;
+}
+
+function parseVariantGroup(text, config){
+  text = text.replace(/[,;]+$/, '').trim();
+  const allNames = new Set(Object.keys(config));
+  const sorted = [...allNames].sort((a,b) => b.length - a.length);
+  const namePat = '(?:' + sorted.map(n => n.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')).join('|') + ')';
+  const pattern = new RegExp('\\s+(' + namePat + '(?:\\s*,\\s*' + namePat + ')*)\\s*$');
+  const m = text.match(pattern);
+  if(!m) return [text.trim(), []];
+  const variantText = text.slice(0, text.lastIndexOf(m[0])).trim();
+  const witnesses = [];
+  for(const w of m[1].split(/\s*,\s*/)){
+    const norm = config[w.trim()];
+    if(norm && !witnesses.includes(norm)) witnesses.push(norm);
+  }
+  return [variantText, witnesses];
+}
+
+function parseOdmiany(text, config){
+  text = text.replace(/\.\.\./g, '\u2026');
+  const entryPat = /^(?:s\.\s+[\d\-\u2013\u2014]+\s+)?w\.\s+[\d\-\u2013\u2014]+\s+/;
+  const matchPat = /^(?:s\.\s+[\d\-\u2013\u2014]+\s+)?w\.\s+([\d\-\u2013\u2014]+)\s+(.*?)\]\s*(.+)$/;
+
+  // Sklej linie kontynuacji
+  const joined = [];
+  let current = null;
+  for(const raw of text.split('\n')){
+    const line = raw.trim();
+    if(!line){
+      if(current){ joined.push(current); current = null; }
+      continue;
+    }
+    if(entryPat.test(line)){
+      if(current) joined.push(current);
+      current = line;
+    } else if(current){
+      current = current + ' ' + line;
+    }
+  }
+  if(current) joined.push(current);
+
+  const entries = [];
+  const warnings = [];
+  for(const line of joined){
+    const m = line.match(matchPat);
+    if(!m) continue;
+    const nr_wersu = m[1];
+    const tekst_edycji = m[2].trim();
+    const reszta = m[3].trim();
+    const odmiany = [];
+    for(const g of reszta.split(/[;\]]/)){
+      const gt = g.trim();
+      if(!gt) continue;
+      const [vtext, wits] = parseVariantGroup(gt, config);
+      if(wits.length) odmiany.push([vtext, wits]);
+    }
+    if(odmiany.length){
+      entries.push({nr_wersu, tekst_edycji, odmiany});
+    } else {
+      warnings.push('w. ' + nr_wersu + ': ' + tekst_edycji);
+    }
+  }
+  return {entries, warnings};
+}
+
+function buildApp(tekst_edycji, odmiany){
+  const lines = ['<app>'];
+  lines.push('\t<rdg wit="Tekst edycji">' + tekst_edycji + '</rdg>');
+  for(const [vtext, wits] of odmiany){
+    lines.push('\t<rdg wit="' + wits.join(', ') + '">' + vtext + '</rdg>');
+  }
+  lines.push('</app>');
+  return '\n' + lines.join('\n');
+}
+
+function process(configText, odmianyText, inputText){
+  const config = loadConfig(configText);
+  if(!Object.keys(config).length)
+    throw new Error('Nie znaleziono wpisów w config.txt. Sprawdź format pliku.');
+
+  const {entries, warnings} = parseOdmiany(odmianyText, config);
+  const original = inputText;
+  let textOut = original;
+  const report = {warnings, notFound: [], duplicates: []};
+
+  for(const {tekst_edycji, nr_wersu, odmiany} of entries){
+    const esc = tekst_edycji.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');
+    const occ = (original.match(new RegExp(esc, 'g')) || []).length;
+    if(occ === 0){ report.notFound.push('w. ' + nr_wersu + ': ' + tekst_edycji); continue; }
+    if(occ > 1) report.duplicates.push('w. ' + nr_wersu + ': ' + tekst_edycji + ' (' + occ + ' wystąpień)');
+    const appBlock = buildApp(tekst_edycji, odmiany);
+    textOut = textOut.split(tekst_edycji).join(tekst_edycji + appBlock);
+  }
+
+  return {textOut, report};
+}
+
+// ── UI ─────────────────────────────────────────────────────
+async function run(){
+  const errEl = document.getElementById('err');
+  errEl.style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('btn').textContent = 'Przetwarzam…';
+  document.getElementById('btn').disabled = true;
+
+  try{
+    const [cfgTxt, odmTxt, inpTxt] = await Promise.all([
+      readFile(files.config), readFile(files.odmiany), readFile(files.input)
+    ]);
+
+    const {textOut, report} = process(cfgTxt, odmTxt, inpTxt);
+
+    outputBlob = new Blob([textOut], {type: 'text/plain;charset=utf-8'});
+    const basename = files.input.name.replace(/\.[^.]+$/, '');
+    document.getElementById('dl-label').textContent =
+      'Pobierz plik wynikowy — ' + basename + '_output.txt';
+
+    renderReport(report);
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('results').scrollIntoView({behavior:'smooth', block:'nearest'});
+
+  } catch(e){
+    errEl.textContent = e.message;
+    errEl.style.display = 'block';
+  } finally {
+    document.getElementById('btn').textContent = 'Przetwórz i pobierz wynik';
+    document.getElementById('btn').disabled = false;
+  }
+}
+
+function downloadResult(){
+  if(!outputBlob) return;
+  const basename = (files.input?.name || 'output').replace(/\.[^.]+$/, '');
+  const url = URL.createObjectURL(outputBlob);
+  const a = document.createElement('a');
+  a.href = url; a.download = basename + '_output.txt';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function renderReport(report){
+  const rb = document.getElementById('raport-body');
+  const total = report.warnings.length + report.notFound.length + report.duplicates.length;
+  if(total === 0){
+    rb.innerHTML = '<div class="raport-ok">Wszystkie warianty znalezione i przetworzone bez problemów.</div>';
+    return;
+  }
+  let html = '';
+  if(report.warnings.length)
+    html += section('warn', 'Ostrzeżenia (' + report.warnings.length + ') — pominięte wpisy',
+      report.warnings, 'Skrypt nie rozpoznał nazwy świadka. Sprawdź format wpisu w rejestrze odmian.');
+  if(report.notFound.length)
+    html += section('err', 'Nieznalezione (' + report.notFound.length + ')',
+      report.notFound, 'Sprawdź łamanie wyrazów, znaczniki inline lub wielokropki.');
+  if(report.duplicates.length)
+    html += section('dup', 'Duplikaty (' + report.duplicates.length + ') — oznaczono wszystkie wystąpienia',
+      report.duplicates, 'Sprawdź czy wszystkie wystąpienia tej frazy mają ten sam wariant.');
+  rb.innerHTML = html;
+}
+
+function section(type, title, items, hint){
+  return '<div class="raport-section s-' + type + '">'
+    + '<div class="raport-section-title">' + title + '</div>'
+    + (hint ? '<div class="raport-hint">' + hint + '</div>' : '')
+    + '<ul class="raport-list">' + items.map(i => '<li>' + i + '</li>').join('') + '</ul>'
+    + '</div>';
+}
+</script>
+</body>
+</html>
