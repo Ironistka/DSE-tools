@@ -88,7 +88,7 @@ Python 3.x — nie są wymagane żadne zewnętrzne biblioteki.
 
 Przykładowe pliki wejściowe i wyjściowe znajdują się w folderze `example/`.
 
-## Podziękowania
+## Dodatkowe informacje
 
 Interfejs html powstał przy pomocy AI - Claude (Anthropic). 
 
