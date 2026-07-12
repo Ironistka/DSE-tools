@@ -1,0 +1,20 @@
+<!-- t. I rozdz. II -->
+<app type="emendacja" resp="editor">
+	<lem wit="Tekst edycji">tekst poprawiony</lem>
+	<rdg wit="KCodz">tekst błędny w podstawie</rdg>
+	<annotation>[PRZYKŁAD DEMONSTRACYJNY / DEMO DATA — nie jest ustaleniem edytorskim] Emendacja z podstawą w przekazie: odrzucone czytanie poświadczone w KCodz.</annotation>
+</app>
+
+<!-- t. I rozdz. VII -->
+<app type="koniektura" resp="editor">
+	<lem wit="Tekst edycji">domysł edytorski</lem>
+	<rdg>miejsce zepsute</rdg>
+	<annotation>[PRZYKŁAD DEMONSTRACYJNY / DEMO DATA — nie jest ustaleniem edytorskim] Koniektura bez oparcia w przekazach — pole „podstawa korekty” puste, więc &lt;rdg&gt; nie dostanie atrybutu wit.</annotation>
+</app>
+
+<!-- t. II rozdz. XIII -->
+<app type="emendacja" resp="editor">
+	<lem wit="Tekst edycji">wariant przyjęty</lem>
+	<rdg wit="rkps L1">wariant odrzucony</rdg>
+	<annotation>[PRZYKŁAD DEMONSTRACYJNY / DEMO DATA — nie jest ustaleniem edytorskim] Wiele siglów rozdzielanych spacją: wit="rkps L1".</annotation>
+</app>

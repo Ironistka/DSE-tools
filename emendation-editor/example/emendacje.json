@@ -1,0 +1,35 @@
+[
+  {
+    "created": 1752300000000,
+    "updated": 1752300000000,
+    "tom": "I",
+    "rozdzial": "II",
+    "typ": "emendacja",
+    "del": "tekst błędny w podstawie",
+    "add": "tekst poprawiony",
+    "wits": ["KCodz"],
+    "note": "[PRZYKŁAD DEMONSTRACYJNY / DEMO DATA — nie jest ustaleniem edytorskim] Emendacja z podstawą w przekazie: odrzucone czytanie poświadczone w KCodz."
+  },
+  {
+    "created": 1752300100000,
+    "updated": 1752300100000,
+    "tom": "I",
+    "rozdzial": "VII",
+    "typ": "koniektura",
+    "del": "miejsce zepsute",
+    "add": "domysł edytorski",
+    "wits": [],
+    "note": "[PRZYKŁAD DEMONSTRACYJNY / DEMO DATA — nie jest ustaleniem edytorskim] Koniektura bez oparcia w przekazach — pole „podstawa korekty” puste, więc <rdg> nie dostanie atrybutu wit."
+  },
+  {
+    "created": 1752300200000,
+    "updated": 1752300200000,
+    "tom": "II",
+    "rozdzial": "XIII",
+    "typ": "emendacja",
+    "del": "wariant odrzucony",
+    "add": "wariant przyjęty",
+    "wits": ["rkps", "L1"],
+    "note": "[PRZYKŁAD DEMONSTRACYJNY / DEMO DATA — nie jest ustaleniem edytorskim] Wiele siglów rozdzielanych spacją: wit=\"rkps L1\"."
+  }
+]
