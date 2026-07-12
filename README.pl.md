@@ -34,8 +34,8 @@ tekst bazowy<app>
 ```
 
 **Dostępny w trzech wersjach:**
-- `procesor_tei.ipynb` — notebook Google Colab
-- `procesor_tei.py` — samodzielny skrypt Python
+- `procesor_app.ipynb` — notebook Google Colab
+- `procesor_app.py` — samodzielny skrypt Python
 - `procesor_tei_app.html` — interfejs przeglądarkowy, bez instalacji
 
 #### Pliki wejściowe
@@ -84,9 +84,63 @@ Przed uruchomieniem zmień ścieżki do plików na dole skryptu.
 
 Python 3.x — nie są wymagane żadne zewnętrzne biblioteki.
 
+### Edytor emendacji i koniektur (`emendation-editor/`)
+
+Przeglądarkowy edytor do rejestrowania emendacji i koniektur edytorskich, 
+z eksportem do aparatu krytycznego TEI. Bez instalacji i bez serwera — 
+jeden plik HTML, dane pozostają w przeglądarce.
+
+**Format wyjściowy:**
+```xml
+<!-- t. I rozdz. VII -->
+<app type="emendacja" resp="editor">
+	<lem wit="Tekst edycji">czytanie przyjęte</lem>
+	<rdg wit="KCodz">czytanie odrzucone</rdg>
+	<annotation>uzasadnienie decyzji edytorskiej</annotation>
+</app>
+```
+
+Lokalizacja (tom, rozdział) trafia do komentarza XML nad blokiem — w samym 
+`<app>` nie ma na nią miejsca, kotwiczy się go w tekście bazowym.
+
+**Funkcje:**
+- Zamknięte, kaskadowe listy tomów i rozdziałów (struktura edycji *Lalki*)
+- Wyszukiwarka pełnotekstowa, filtrowanie po tomie i rozdziale, sortowanie 
+  (pozycyjnie / ostatnio edytowane / kolejność dodania); cyfry rzymskie 
+  sortują się poprawnie
+- Edycja wpisu po kliknięciu karty
+- Eksport do TEI (`.txt`) i do JSON; import z JSON pozwala wznowić pracę
+
+**Format danych:** JSON jest formatem nadrzędnym — zawiera komplet pól, 
+a eksport TEI jest z niego generowany. Jeśli konwencja kodowania się zmieni, 
+wystarczy zmodyfikować funkcję `exportTEI()`; danych nie trzeba wprowadzać 
+ponownie.
+
+```json
+{
+  "tom": "I",
+  "rozdzial": "VII",
+  "typ": "emendacja",
+  "del": "czytanie odrzucone",
+  "add": "czytanie przyjęte",
+  "wits": ["KCodz", "rkps"],
+  "note": "uzasadnienie decyzji edytorskiej"
+}
+```
+
+**Dostosowanie do innego tekstu:** zmień stałe `TOMY` i `CHAPTERS` na początku 
+sekcji `<script>`; sigla przekazów to elementy `.witness-chip` w kodzie HTML.
+
+**Sposób użycia:** otwórz `index.html` w dowolnej nowoczesnej przeglądarce. 
+Wczytaj `example/emendacje.json`, żeby zobaczyć edytor z przykładowymi danymi.
+
+> **Uwaga:** dane przechowywane są w `localStorage` przeglądarki. Eksportuj 
+> JSON regularnie — wyczyszczenie danych przeglądarki skasuje wpisy.
+
 ## Pliki przykładowe
 
-Przykładowe pliki wejściowe i wyjściowe znajdują się w folderze `example/`.
+Przykładowe pliki wejściowe i wyjściowe znajdują się w folderze `example/` 
+każdego z narzędzi.
 
 ## Dodatkowe informacje
 
